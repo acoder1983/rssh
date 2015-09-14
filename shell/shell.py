@@ -65,7 +65,7 @@ def manual_auth(transport, username):
 
 
 # setup logging
-paramiko.util.log_to_file('demo.log')
+#paramiko.util.log_to_file('demo.log')
 
 portIn = int(sys.argv[1])
 portOut = int(sys.argv[2])
