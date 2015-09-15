@@ -6,7 +6,7 @@
    </tr>
    <tr>
       <td>check if securecrt session exit causes the abortion of current process</td>
-      <td>run by nohup [cmd] &</td>
+      <td>yes. run by nohup [cmd] &</td>
    </tr>
    <tr>
       <td>missing first char in first line of output</td>
