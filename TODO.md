@@ -1,8 +1,8 @@
 # 2015-09-15
 <table>
    <tr>
-      <td style="width:800px">problem</td>
-      <td>fixed</td>
+      <th>problem</th>
+      <th>fixed</th>
    </tr>
    <tr>
       <td>check if securecrt session exit causes the abortion of current process</td>
