@@ -1,7 +1,7 @@
 # 2015-09-15
 <table>
    <tr>
-      <td style="color:red">problem</td>
+      <td style="width:400px">problem</td>
       <td>fixed</td>
    </tr>
    <tr>
