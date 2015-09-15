@@ -1,7 +1,7 @@
 # 2015-09-15
 <table>
    <tr>
-      <th>problem</th>
+      <th align="left">problem</th>
       <th>fixed</th>
    </tr>
    <tr>
