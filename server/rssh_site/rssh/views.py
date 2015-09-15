@@ -52,7 +52,7 @@ def rssh_exec(request, portIn, portOut, cmd):
         while True:
             try:
                 data, addr = s_out.recvfrom(1024)
-                msg += str(data).decode('utf-8')
+                msg += data
             except timeout:
                 break
         s_out.close()

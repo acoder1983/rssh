@@ -22,6 +22,7 @@
 
 import socket
 import sys
+import unicodedata
 from paramiko.py3compat import u
 
 # windows does not have termios...
@@ -56,21 +57,22 @@ def posix_shell(chan, portIn, portOut):
         chan.settimeout(0.0)
 
         while True:
-            r, w, e = select.select([chan, s_in], [], [])
+            r, w, e = select.select([chan, sys.stdin, s_in], [], [])
             if chan in r:
                 try:
                     x = u(chan.recv(1024))
+                    x = unicodedata.normalize('NFKD', x).encode('ascii', 'ignore')
                     if len(x) == 0:
-                        # s_in.close()
+                        s_in.close()
                         sys.stdout.write('\r\n*** EOF\r\n')
                         break
-                    # sys.stdout.write(x)
-                    # sys.stdout.flush()
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
 
                     # send back
                     host = 'localhost'
                     s_out = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s_out.sendto(str(x).encode('utf-8'), (host, portOut))
+                    s_out.sendto(x, (host, portOut))
 
                 except socket.timeout:
                     pass
@@ -116,3 +118,17 @@ def windows_shell(chan):
     except EOFError:
         # user hit ^Z or F6
         pass
+
+
+def replaceUnicode(s, replaceChar):
+    '''
+    用指定字符替换字符串内的unicode字符
+    s：需要进行替换的字符串
+    replaceChar：替换unicode的ascii字符
+    return：替换后的str
+    '''
+    ba = bytearray(s)
+    for x in range(0, len(ba)):
+        if ba[x] > 127:
+            ba[x] = ord(replaceChar)
+    return str(ba)

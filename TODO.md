@@ -18,6 +18,6 @@
    </tr>
    <tr>
       <td>shell recv unicode char causes send back error</td>
-      <td>no</td>
+      <td>yes. import unicodedata to fix</td>
    </tr>
 </table>
