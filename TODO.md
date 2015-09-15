@@ -2,11 +2,11 @@
 <table>
    <tr>
       <th align="left">problem</th>
-      <th>fixed</th>
+      <th align="left">fixed</th>
    </tr>
    <tr>
       <td>check if securecrt session exit causes the abortion of current process</td>
-      <td>no</td>
+      <td color="red">no</td>
    </tr>
    <tr>
       <td>missing first char in first line of output</td>
