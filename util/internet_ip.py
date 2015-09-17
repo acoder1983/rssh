@@ -13,8 +13,8 @@ def getInternetIp():
             ip = getIp(urls[i], tags[i][0], tags[i][1])
             return ip
         except Exception, e:
-            raise e
-
+            print str(e)
+            
 
 def getIp(url, tagBeg, tagEnd):
 

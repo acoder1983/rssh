@@ -32,17 +32,24 @@ def open_rssh(cmdArgs):
 
             def queryOutput():
                 queryUrl = util.makeQueryUrl(args['addr'], port)
-                while cmd != 'q':
+                tmp = ''
+                while cmd != 'q' and cmd != 'exit':
                     response = urllib2.urlopen(queryUrl, timeout=5)
                     msg = response.read()
                     if len(msg) == 0:
                         time.sleep(1.0)
                     else:
-                        # if len(cmd) > 0 and msg.find(cmd + '\n') > -1:
-                        #     msg = msg.replace(cmd + '\n', '')
-                        #     cmd = ''
-                        sys.stdout.write(msg)
-                        sys.stdout.flush()
+                        # remove vt100 ctrl code (027~m)
+                        tmp += msg
+                        while True:
+                            hasSplit, tmp = util.splitVTCode(tmp)
+                            if len(hasSplit) == 0:
+                                break
+                            else:
+                                sys.stdout.write(hasSplit)
+                                sys.stdout.flush()
+                        # sys.stdout.write(msg)
+                        # sys.stdout.flush()
 
             t = threading.Thread(target=queryOutput)
             t.start()
@@ -53,7 +60,7 @@ def open_rssh(cmdArgs):
                 cmd = raw_input()
                 cmdUrl = util.makeCmdUrl(args['addr'], port, cmd)
                 response = urllib2.urlopen(cmdUrl, timeout=5)
-                if cmd == 'q' or response.code != 200:
+                if cmd == 'q' or cmd == 'exit' or response.code != 200:
                     break
 
     except Exception, e:

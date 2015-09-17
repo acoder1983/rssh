@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
 import unittest
 
 
@@ -41,6 +42,23 @@ def makeQueryUrl(addr, port):
     return 'http://%s/rssh/%s/query' % (addr, port)
 
 
+def splitVTCode(s):
+    beg = s.find(chr(27))
+    if beg == -1:
+        return s, ''
+    else:
+        VT_ENDs = ['c', 'n', 'R', 'h', 'l', '(', ')', 'H', 'A', 'B', 'C', 'D', 'f', 's', 'u', '7', '8', 'r', 'M', 'g', 'K', 'J', 'i', 'p', 'm']
+        end = sys.maxint
+        for c in VT_ENDs:
+            e = s.find(c, beg)
+            if e != -1 and e < end:
+                end = e
+        if end == sys.maxint:
+            return s[:beg], s[beg:]
+        else:
+            return s[:beg], s[end + 1:]
+
+
 class TestUtil(unittest.TestCase):
 
     def testParseCmdArgs(self):
@@ -71,6 +89,23 @@ class TestUtil(unittest.TestCase):
         addr = '1.1.1.1:80'
         port = '1'
         self.assertEqual(makeQueryUrl(addr, port), 'http://1.1.1.1:80/rssh/1/query')
+
+    def testSplitVTCode(self):
+        s = 'abcd'
+        self.assertEqual(splitVTCode(s), ('abcd', ''))
+
+        s = 'ab0ab1cd'
+        b = bytearray(s)
+        b[2] = chr(27)
+        b[5] = 'm'
+        s = str(b)
+        self.assertEqual(splitVTCode(s), ('ab', 'cd'))
+
+        s = 'ab01d'
+        b = bytearray(s)
+        b[2] = chr(27)
+        s = str(b)
+        self.assertEqual(splitVTCode(s), ('ab', str(chr(27)) + '1d'))
 
 if __name__ == '__main__':
     unittest.main()

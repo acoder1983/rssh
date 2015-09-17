@@ -33,7 +33,7 @@ try:
 except ImportError:
     has_termios = False
 
-# sys.path.append('/home/rssh')
+sys.path.append('../util')
 # from util import output_queue
 import output_queue
 
@@ -61,7 +61,7 @@ def posix_shell(chan, port):
         chan.settimeout(0.0)
 
         while True:
-            r, w, e = select.select([chan, s_in], [], [])
+            r, w, e = select.select([chan, sys.stdin, s_in], [], [])
             if chan in r:
                 try:
                     x = u(chan.recv(1024))
@@ -71,8 +71,8 @@ def posix_shell(chan, port):
                         break
                     # encode msg in ascii
                     x = unicodedata.normalize('NFKD', x).encode('ascii', 'ignore')
-                    # sys.stdout.write(x)
-                    # sys.stdout.flush()
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
 
                     # send back
                     output_queue.push(x)

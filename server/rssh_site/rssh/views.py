@@ -8,7 +8,7 @@ import unittest
 import socket
 from socket import AF_INET, SOCK_DGRAM, timeout
 
-# sys.path.append(getUtilDir())
+sys.path.append('/home/rssh/util')
 # from util import output_queue
 import output_queue
 
@@ -55,6 +55,9 @@ def rssh_query(request, port):
             break
 
     # send back
+    # m = ''
+    # for x in msg:
+    #     m += str(ord(x)) + ';'
     return HttpResponse(msg)
 
 

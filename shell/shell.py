@@ -31,12 +31,13 @@ import traceback
 from paramiko.py3compat import input
 
 import paramiko
-try:
-    import interactive
-except ImportError:
-    from . import interactive
+# try:
+#     import interactive
+# except ImportError:
+#     from . import interactive
+import interactive
 
-# sys.path.append('/home/rssh')
+sys.path.append('../util')
 # from util import output_queue
 import output_queue
 
@@ -108,7 +109,7 @@ try:
         sys.exit(1)
 
     chan = t.open_session()
-    chan.get_pty()
+    chan.get_pty(term='linux')
     chan.invoke_shell()
     print('*** Here we go!\n')
 
