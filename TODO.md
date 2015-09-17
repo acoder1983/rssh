@@ -8,6 +8,10 @@
       <td>response of start url is 200, but the content is not port.</td>
       <td>no</td>
    </tr>
+   <tr>
+      <td>output retypes the cmd.</td>
+      <td>no</td>
+   </tr>
 </table>
 
 # 2015-09-15
