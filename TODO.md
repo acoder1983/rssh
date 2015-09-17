@@ -1,3 +1,15 @@
+# 2015-09-17
+<table>
+   <tr>
+      <th align="left">problem</th>
+      <th align="left">fixed</th>
+   </tr>
+   <tr>
+      <td>response of start url is 200, but the content is not port.</td>
+      <td>no</td>
+   </tr>
+</table>
+
 # 2015-09-15
 <table>
    <tr>
@@ -10,7 +22,7 @@
    </tr>
    <tr>
       <td>missing first char in first line of output</td>
-      <td>no</td>
+      <td>yes. change the way to get output</td>
    </tr>
    <tr>
       <td>folder displayed error of cmd ll result</td>
@@ -21,3 +33,4 @@
       <td>yes. import unicodedata to fix</td>
    </tr>
 </table>
+
