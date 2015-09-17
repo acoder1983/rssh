@@ -33,23 +33,27 @@ try:
 except ImportError:
     has_termios = False
 
+# sys.path.append('/home/rssh')
+# from util import output_queue
+import output_queue
 
-def interactive_shell(chan, portIn, portOut):
+
+def interactive_shell(chan, port):
     if has_termios:
-        posix_shell(chan, portIn, portOut)
+        posix_shell(chan, port)
     else:
         # windows_shell(chan)
         print 'not support posix_shell'
         sys.exit(1)
 
 
-def posix_shell(chan, portIn, portOut):
+def posix_shell(chan, port):
     import select
 
     oldtty = termios.tcgetattr(sys.stdin)
 
     s_in = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s_in.bind(('', portIn))
+    s_in.bind(('', port))
 
     try:
         tty.setraw(sys.stdin.fileno())
@@ -57,22 +61,21 @@ def posix_shell(chan, portIn, portOut):
         chan.settimeout(0.0)
 
         while True:
-            r, w, e = select.select([chan, sys.stdin, s_in], [], [])
+            r, w, e = select.select([chan, s_in], [], [])
             if chan in r:
                 try:
                     x = u(chan.recv(1024))
-                    x = unicodedata.normalize('NFKD', x).encode('ascii', 'ignore')
                     if len(x) == 0:
                         s_in.close()
                         sys.stdout.write('\r\n*** EOF\r\n')
                         break
-                    sys.stdout.write(x)
-                    sys.stdout.flush()
+                    # encode msg in ascii
+                    x = unicodedata.normalize('NFKD', x).encode('ascii', 'ignore')
+                    # sys.stdout.write(x)
+                    # sys.stdout.flush()
 
                     # send back
-                    host = 'localhost'
-                    s_out = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s_out.sendto(x, (host, portOut))
+                    output_queue.push(x)
 
                 except socket.timeout:
                     pass
@@ -88,47 +91,3 @@ def posix_shell(chan, portIn, portOut):
                 chan.send(data)
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
-
-
-# thanks to Mike Looijmans for this code
-def windows_shell(chan):
-    import threading
-
-    sys.stdout.write("Line-buffered terminal emulation. Press F6 or ^Z to send EOF.\r\n\r\n")
-
-    def writeall(sock):
-        while True:
-            data = sock.recv(256)
-            if not data:
-                sys.stdout.write('\r\n*** EOF ***\r\n\r\n')
-                sys.stdout.flush()
-                break
-            sys.stdout.write(data)
-            sys.stdout.flush()
-
-    writer = threading.Thread(target=writeall, args=(chan,))
-    writer.start()
-
-    try:
-        while True:
-            d = sys.stdin.read(1)
-            if not d:
-                break
-            chan.send(d)
-    except EOFError:
-        # user hit ^Z or F6
-        pass
-
-
-def replaceUnicode(s, replaceChar):
-    '''
-    用指定字符替换字符串内的unicode字符
-    s：需要进行替换的字符串
-    replaceChar：替换unicode的ascii字符
-    return：替换后的str
-    '''
-    ba = bytearray(s)
-    for x in range(0, len(ba)):
-        if ba[x] > 127:
-            ba[x] = ord(replaceChar)
-    return str(ba)

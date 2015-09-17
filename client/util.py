@@ -33,8 +33,12 @@ def makeStartUrl(addr):
     return 'http://%s/rssh/start' % addr
 
 
-def makeCmdUrl(addr, portIn, portOut, cmd):
-    return 'http://%s/rssh/%s/%s/exec/%s' % (addr, portIn, portOut, cmd.replace(' ', '%20'))
+def makeCmdUrl(addr, port, cmd):
+    return 'http://%s/rssh/%s/exec/%s' % (addr, port, cmd.replace(' ', '%20'))
+
+
+def makeQueryUrl(addr, port):
+    return 'http://%s/rssh/%s/query' % (addr, port)
 
 
 class TestUtil(unittest.TestCase):
@@ -60,9 +64,13 @@ class TestUtil(unittest.TestCase):
     def testMakeCmdUrl(self):
         addr = '1.1.1.1:80'
         cmd = 'ls -l'
-        portIn = '1'
-        portOut = '2'
-        self.assertEqual(makeCmdUrl(addr, portIn, portOut, cmd), 'http://1.1.1.1:80/rssh/1/2/exec/ls%20-l')
+        port = '1'
+        self.assertEqual(makeCmdUrl(addr, port, cmd), 'http://1.1.1.1:80/rssh/1/exec/ls%20-l')
+
+    def testMakeQueryUrl(self):
+        addr = '1.1.1.1:80'
+        port = '1'
+        self.assertEqual(makeQueryUrl(addr, port), 'http://1.1.1.1:80/rssh/1/query')
 
 if __name__ == '__main__':
     unittest.main()

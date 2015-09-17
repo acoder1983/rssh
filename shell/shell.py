@@ -19,7 +19,6 @@
 # along with Paramiko; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
-
 import base64
 from binascii import hexlify
 import getpass
@@ -30,7 +29,6 @@ import sys
 import time
 import traceback
 from paramiko.py3compat import input
-from socket import AF_INET, SOCK_DGRAM, timeout
 
 import paramiko
 try:
@@ -38,26 +36,9 @@ try:
 except ImportError:
     from . import interactive
 
-
-def agent_auth(transport, username):
-    """
-    Attempt to authenticate to the given transport using any of the private
-    keys available from an SSH agent.
-    """
-
-    agent = paramiko.Agent()
-    agent_keys = agent.get_keys()
-    if len(agent_keys) == 0:
-        return
-
-    for key in agent_keys:
-        print('Trying ssh-agent key %s' % hexlify(key.get_fingerprint()))
-        try:
-            transport.auth_publickey(username, key)
-            print('... success!')
-            return
-        except paramiko.SSHException:
-            print('... nope.')
+# sys.path.append('/home/rssh')
+# from util import output_queue
+import output_queue
 
 
 def manual_auth(transport, username):
@@ -65,21 +46,23 @@ def manual_auth(transport, username):
 
 
 # setup logging
-#paramiko.util.log_to_file('demo.log')
+# paramiko.util.log_to_file('demo.log')
 
-portIn = int(sys.argv[1])
-portOut = int(sys.argv[2])
+port = int(sys.argv[1])
 hostname = 'localhost'
 username = 'root'
 password = 'letmein'
 sshPort = 22
+
 
 # now connect
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((hostname, sshPort))
 except Exception as e:
-    print('*** Connect failed: ' + str(e))
+    msg = '*** Connect failed: ' + str(e)
+    output_queue.push(msg)
+    print(msg)
     traceback.print_exc()
     sys.exit(1)
 
@@ -88,7 +71,9 @@ try:
     try:
         t.start_client()
     except paramiko.SSHException:
-        print('*** SSH negotiation failed.')
+        msg = '*** SSH negotiation failed.'
+        output_queue.push(msg)
+        print(msg)
         sys.exit(1)
 
     try:
@@ -107,16 +92,18 @@ try:
     elif key.get_name() not in keys[hostname]:
         print('*** WARNING: Unknown host key!')
     elif keys[hostname][key.get_name()] != key:
-        print('*** WARNING: Host key has changed!!!')
+        msg = '*** WARNING: Host key has changed!!!'
+        print(msg)
+        output_queue.push(msg)
         sys.exit(1)
     else:
         print('*** Host key OK.')
 
-    agent_auth(t, username)
+    manual_auth(t, username)
     if not t.is_authenticated():
-        manual_auth(t, username)
-    if not t.is_authenticated():
-        print('*** Authentication failed. :(')
+        msg = '*** Authentication failed. :('
+        output_queue.push(msg)
+        print(msg)
         t.close()
         sys.exit(1)
 
@@ -125,17 +112,14 @@ try:
     chan.invoke_shell()
     print('*** Here we go!\n')
 
-    # tell site conn ok
-    time.sleep(1)
-    s = socket.socket(AF_INET, SOCK_DGRAM)
-    s.sendto('connect ok', ('localhost', portOut))
-
-    interactive.interactive_shell(chan, portIn, portOut)
+    interactive.interactive_shell(chan, port)
     chan.close()
     t.close()
 
 except Exception as e:
-    print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))
+    msg = '*** Caught exception: ' + str(e.__class__) + ': ' + str(e)
+    output_queue.push(msg)
+    print()
     traceback.print_exc()
     try:
         t.close()

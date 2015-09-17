@@ -3,67 +3,59 @@
 from django.http import HttpResponse
 from subprocess import Popen
 import os
+import sys
 import unittest
 import socket
 from socket import AF_INET, SOCK_DGRAM, timeout
 
+# sys.path.append(getUtilDir())
+# from util import output_queue
+import output_queue
+
 
 def rssh_start(request):
     # find available ports for msg
-    portIn = findAvailablePort()
-    portOut = findAvailablePort(portIn + 1)
+    port = findAvailablePort()
 
     # get pyshell dir
     d = getFileDir(__file__)
     shellDir = getShellDir(d)
 
     # run shell terminal
-    Popen(['python', 'shell.py', str(portIn), str(portOut)], cwd=shellDir)
+    output_queue.clear()
+    Popen(['python', 'shell.py', str(port)], cwd=shellDir)
 
-    # wait shell open ok
-    s = socket.socket(AF_INET, SOCK_DGRAM)
-    s.bind(('', portOut))
-    s.settimeout(5)
-    try:
-        data, addr = s.recvfrom(1024)
-        s.close()
-        r = HttpResponse('%d;%d' % (portIn, portOut))
-    except timeout:
-        r = HttpResponse('connect ssh server timeout')
-        r.status = 500
+    r = HttpResponse('%d' % port)
 
-    s.close()
     return r
 
 
-def rssh_exec(request, portIn, portOut, cmd):
-    print '%s %s %s' % (portIn, portOut, cmd)
+def rssh_exec(request, port, cmd):
     cmd = cmd.replace('%20', ' ')
 
-    # recv shell result and send back
-    s_out = socket.socket(AF_INET, SOCK_DGRAM)
-    s_out.bind(('', int(portOut)))
-    s_out.settimeout(1)
     try:
         # send cmd to shell
         s_in = socket.socket(AF_INET, SOCK_DGRAM)
-        s_in.sendto(cmd + '\n', ('localhost', int(portIn)))
-        msg = ""
-        while True:
-            try:
-                data, addr = s_out.recvfrom(1024)
-                msg += data
-            except timeout:
-                break
-        s_out.close()
-        # remove cmd echo and prompt
-        msg = msg[msg.find('\n')+1:]
-        msg = msg[:msg.rfind('\n')]
-        r = HttpResponse(msg)
-    except timeout:
-        r = HttpResponse('connect ssh server timeout')
+        s_in.sendto(cmd + '\n', ('localhost', int(port)))
+        r = HttpResponse()
+    except Exception, e:
+        r = HttpResponse(str(e))
         r.status = 500
     return r
+
+
+def rssh_query(request, port):
+    # fetch outputs
+    msg = ''
+    for x in xrange(5):
+        s = output_queue.pop()
+        if s:
+            msg += s
+        else:
+            break
+
+    # send back
+    return HttpResponse(msg)
 
 
 def findAvailablePort(startPort=19831):
@@ -88,9 +80,17 @@ def getFileDir(filePath):
 
 def getShellDir(curDirPath):
     end = len(curDirPath)
-    for i in xrange(1, 4):
+    for i in xrange(3):
         end = curDirPath.rfind('/', 0, end)
     return curDirPath[:end] + '/shell'
+
+
+def getUtilDir():
+    curDirPath = getFileDir(__file__)
+    end = len(curDirPath)
+    for i in xrange(3):
+        end = curDirPath.rfind('/', 0, end)
+    return curDirPath[:end] + '/util'
 
 
 class TestView(unittest.TestCase):
