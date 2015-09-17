@@ -12,6 +12,10 @@
       <td>output retypes the cmd.</td>
       <td>no</td>
    </tr>
+   <tr>
+      <td>duplicate copies of output_queue files.</td>
+      <td>no</td>
+   </tr>
 </table>
 
 # 2015-09-15
