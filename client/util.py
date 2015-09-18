@@ -47,7 +47,8 @@ def splitVTCode(s):
     if beg == -1:
         return s, ''
     else:
-        VT_ENDs = ['c', 'n', 'R', 'h', 'l', '(', ')', 'H', 'A', 'B', 'C', 'D', 'f', 's', 'u', '7', '8', 'r', 'M', 'g', 'K', 'J', 'i', 'p', 'm']
+        # VT_ENDs = ['m', 'c', 'n', 'R', 'h', 'l', '(', ')', 'H', 'A', 'B', 'C', 'D', 'f', 's', 'u', '7', '8', 'r', 'M', 'g', 'K', 'J', 'i', 'p', ]
+        VT_ENDs = ['m']
         end = sys.maxint
         for c in VT_ENDs:
             e = s.find(c, beg)
@@ -56,6 +57,8 @@ def splitVTCode(s):
         if end == sys.maxint:
             return s[:beg], s[beg:]
         else:
+            # print 'split m 0: '+s[:beg]
+            # print 'split m 1: '+s[end + 1:]
             return s[:beg], s[end + 1:]
 
 
@@ -108,4 +111,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(splitVTCode(s), ('ab', str(chr(27)) + '1d'))
 
 if __name__ == '__main__':
+    # import unicodedata
+    # x = chr(27) + '[' + chr(0) + 'm'
+    # print 'x before: ' + x
+    # x = unicodedata.normalize('NFKD', x.decode('utf-8')).encode('ascii', 'ignore')
+    # print 'x after: ' + x
+    # sys.stdout.write('\x1b[\x00m\x1b[\x01;\x22mredis-3.0.4\x1b[\x00m\n')
+    # sys.stdout.flush()
     unittest.main()
