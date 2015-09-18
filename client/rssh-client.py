@@ -34,22 +34,44 @@ def open_rssh(cmdArgs):
                 queryUrl = util.makeQueryUrl(args['addr'], port)
                 tmp = ''
                 while cmd != 'q' and cmd != 'exit':
-                    response = urllib2.urlopen(queryUrl, timeout=5)
-                    msg = response.read()
-                    if len(msg) == 0:
-                        time.sleep(1.0)
-                    else:
-                        # remove vt100 ctrl code (027~m)
-                        tmp += msg
-                        while True:
-                            hasSplit, tmp = util.splitVTCode(tmp)
-                            if len(hasSplit) == 0:
-                                break
-                            else:
-                                sys.stdout.write(hasSplit)
+                    try:
+                        response = urllib2.urlopen(queryUrl, timeout=5)
+                        msg = response.read()
+                        if len(msg) == 0:
+
+                            time.sleep(3.0)
+                        else:
+                            # remove vt100 ctrl code (027~m)
+                            # tmp += msg
+                            # while True:
+                            #     hasSplit, tmp = util.splitVTCode(tmp)
+                            #     if len(hasSplit) == 0:
+                            #         break
+                            #     else:
+                            #         for c in hasSplit:
+                            #             if ord(c) == 13:
+                            #                 continue
+                            #             sys.stdout.write(c)
+                            #             sys.stdout.flush()
+                            # bs = bytearray(msg)
+                            # for b in bs:
+                            #     sys.stdout.write(str(int(b))+str(chr(b)))
+                            #     sys.stdout.flush()
+                            for c in msg:
+                                if ord(c) == 13:
+                                    continue
+                                    # c = chr(10)
+                                    # print ''
+                                    # continue
+                                    # time.sleep(3)
+                                s = c + ' ' + str(ord(c)) + ' '
+                                sys.stdout.write(s)
                                 sys.stdout.flush()
-                        # sys.stdout.write(msg)
-                        # sys.stdout.flush()
+                            # sys.stdout.write(msg)
+                            # sys.stdout.flush()
+
+                    except Exception, e:
+                        print str(e)
 
             t = threading.Thread(target=queryOutput)
             t.start()
