@@ -42,33 +42,23 @@ def open_rssh(cmdArgs):
                             time.sleep(3.0)
                         else:
                             # remove vt100 ctrl code (027~m)
-                            # tmp += msg
-                            # while True:
-                            #     hasSplit, tmp = util.splitVTCode(tmp)
-                            #     if len(hasSplit) == 0:
-                            #         break
-                            #     else:
-                            #         for c in hasSplit:
-                            #             if ord(c) == 13:
-                            #                 continue
-                            #             sys.stdout.write(c)
-                            #             sys.stdout.flush()
-                            # bs = bytearray(msg)
-                            # for b in bs:
-                            #     sys.stdout.write(str(int(b))+str(chr(b)))
+                            tmp += msg
+                            while True:
+                                hasSplit, tmp = util.splitVTCode(tmp)
+                                if len(hasSplit) == 0:
+                                    break
+                                else:
+                                    for c in hasSplit:
+                                        if ord(c) == 13:
+                                            continue
+                                        sys.stdout.write(c)
+                                        sys.stdout.flush()
+                            # for c in msg:
+                            #     if ord(c) == 13:
+                            #         continue
+                            #     s = c + ' ' + str(ord(c)) + ' '
+                            #     sys.stdout.write(s)
                             #     sys.stdout.flush()
-                            for c in msg:
-                                if ord(c) == 13:
-                                    continue
-                                    # c = chr(10)
-                                    # print ''
-                                    # continue
-                                    # time.sleep(3)
-                                s = c + ' ' + str(ord(c)) + ' '
-                                sys.stdout.write(s)
-                                sys.stdout.flush()
-                            # sys.stdout.write(msg)
-                            # sys.stdout.flush()
 
                     except Exception, e:
                         print str(e)
