@@ -50,6 +50,7 @@ def open_rssh(cmdArgs):
                                 else:
                                     for c in hasSplit:
                                         if ord(c) == 13:
+                                            # skip extra carriage for not line delete
                                             continue
                                         sys.stdout.write(c)
                                         sys.stdout.flush()
@@ -59,6 +60,8 @@ def open_rssh(cmdArgs):
                             #     s = c + ' ' + str(ord(c)) + ' '
                             #     sys.stdout.write(s)
                             #     sys.stdout.flush()
+                            # sys.stdout.write(msg)
+                            # sys.stdout.flush()
 
                     except Exception, e:
                         print str(e)

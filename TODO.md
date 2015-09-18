@@ -1,3 +1,15 @@
+# 2015-09-18
+<table>
+   <tr>
+      <th align="left">problem</th>
+      <th align="left">fixed</th>
+   </tr>
+   <tr>
+      <td>ll or ls: output stops at the first line end </td>
+      <td>no</td>
+   </tr>
+</table>
+
 # 2015-09-17
 <table>
    <tr>
