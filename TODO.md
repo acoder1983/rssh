@@ -5,7 +5,7 @@
       <th align="left">fixed</th>
    </tr>
    <tr>
-      <td>ll or ls: output stops at the first line end </td>
+      <td>ll or ls: output stops at the first line end.</td>
       <td>no</td>
    </tr>
 </table>
