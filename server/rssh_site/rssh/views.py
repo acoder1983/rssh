@@ -3,6 +3,7 @@
 from django.http import HttpResponse
 from subprocess import Popen
 import os
+import re
 import sys
 import unittest
 import socket
@@ -36,6 +37,9 @@ def rssh_exec(request, port, cmd):
     try:
         # send cmd to shell
         s_in = socket.socket(AF_INET, SOCK_DGRAM)
+        if startWithlsCmd(cmd):
+            # remove escape sequence
+            cmd += '|cat'
         s_in.sendto(cmd + '\n', ('localhost', int(port)))
         r = HttpResponse()
     except Exception, e:
@@ -55,9 +59,6 @@ def rssh_query(request, port):
             break
 
     # send back
-    # m = ''
-    # for x in msg:
-    #     m += str(ord(x)) + ';'
     return HttpResponse(msg)
 
 
@@ -96,6 +97,11 @@ def getUtilDir():
     return curDirPath[:end] + '/util'
 
 
+def startWithlsCmd(cmd):
+    p = re.compile('l[ls]')
+    return p.match(cmd) != None
+
+
 class TestView(unittest.TestCase):
 
     def testCanBindPort(self):
@@ -110,6 +116,31 @@ class TestView(unittest.TestCase):
     def testGetShellDir(self):
         curDirPath = '/a/b/c/d'
         self.assertEqual(getShellDir(curDirPath), '/a/shell')
+
+    def testStartWithlsCmd(self):
+        cmd = 'ls'
+        self.assertTrue(startWithlsCmd(cmd))
+
+        cmd = 'll'
+        self.assertTrue(startWithlsCmd(cmd))
+
+        cmd = 'ls -a'
+        self.assertTrue(startWithlsCmd(cmd))
+
+        cmd = 'll   --author'
+        self.assertTrue(startWithlsCmd(cmd))
+
+        cmd = 'l'
+        self.assertFalse(startWithlsCmd(cmd))
+
+        cmd = 'a'
+        self.assertFalse(startWithlsCmd(cmd))
+
+        cmd = 'lstate'
+        self.assertFalse(startWithlsCmd(cmd))
+
+        cmd = 'llok'
+        self.assertFalse(startWithlsCmd(cmd))
 
 if __name__ == '__main__':
     unittest.main()
