@@ -7,6 +7,8 @@ import threading
 
 import util
 
+EXIT_RSSH_CMD = 'qq'  # exit rssh session cmd, not using exit, q , quit
+
 
 def open_rssh(cmdArgs):
     '''
@@ -21,6 +23,9 @@ def open_rssh(cmdArgs):
 
         # start rssh
         startUrl = util.makeStartUrl(args['addr'])
+        # proxyConfig = 'http://%s' % ('proxynj.zte.com.cn')
+        # opener = urllib2.build_opener(urllib2.ProxyHandler({'http': proxyConfig}))
+        # urllib2.install_opener(opener)
         response = urllib2.urlopen(startUrl, timeout=10)
 
         if response.code == 200:
@@ -33,7 +38,7 @@ def open_rssh(cmdArgs):
             def queryOutput():
                 queryUrl = util.makeQueryUrl(args['addr'], port)
                 tmp = ''
-                while cmd != 'q' and cmd != 'exit':
+                while cmd != EXIT_RSSH_CMD:
                     try:
                         response = urllib2.urlopen(queryUrl, timeout=5)
                         msg = response.read()
@@ -69,13 +74,13 @@ def open_rssh(cmdArgs):
             t = threading.Thread(target=queryOutput)
             t.start()
 
-            print 'Welcome to ssh %s\n[enter \'q\' to exit]' % args['addr']
+            print '[rssh] Welcome to ssh %s\n[rssh] remote port is %s\n[rssh] enter \'%s\' to exit\n' % (args['addr'], port, EXIT_RSSH_CMD)
             # enter prompt
             while True:
                 cmd = raw_input()
                 cmdUrl = util.makeCmdUrl(args['addr'], port, cmd)
                 response = urllib2.urlopen(cmdUrl, timeout=5)
-                if cmd == 'q' or cmd == 'exit' or response.code != 200:
+                if cmd == EXIT_RSSH_CMD or response.code != 200:
                     break
 
     except Exception, e:
