@@ -42,7 +42,6 @@ def open_rssh(cmdArgs):
                         response = urllib2.urlopen(queryUrl, timeout=5)
                         msg = response.read()
                         if len(msg) == 0:
-
                             time.sleep(3.0)
                         else:
                             # remove vt100 ctrl code (027~m)
