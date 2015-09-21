@@ -59,14 +59,6 @@ def open_rssh(cmdArgs):
                                             continue
                                         sys.stdout.write(c)
                                         sys.stdout.flush()
-                            # for c in msg:
-                            #     if ord(c) == 13:
-                            #         continue
-                            #     s = c + ' ' + str(ord(c)) + ' '
-                            #     sys.stdout.write(s)
-                            #     sys.stdout.flush()
-                            # sys.stdout.write(msg)
-                            # sys.stdout.flush()
 
                     except Exception, e:
                         print str(e)
