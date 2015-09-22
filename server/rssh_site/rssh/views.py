@@ -7,11 +7,33 @@ import re
 import sys
 import unittest
 import socket
-from socket import AF_INET, SOCK_DGRAM, timeout
+from socket import AF_INET, SOCK_DGRAM
 
-sys.path.append('/home/rssh/util')
-# from util import output_queue
-import output_queue
+
+def getFileDir(filePath):
+    return os.path.dirname(os.path.abspath(filePath))
+
+
+def getShellDir(curDirPath):
+    end = len(curDirPath)
+    for i in xrange(3):
+        end = curDirPath.rfind('/', 0, end)
+    return curDirPath[:end] + '/shell'
+
+
+def getUtilDir():
+    curDirPath = getFileDir(__file__)
+    end = len(curDirPath)
+    for i in xrange(3):
+        end = curDirPath.rfind('/', 0, end)
+    return curDirPath[:end] + '/util'
+
+
+sys.path.append(getUtilDir())
+try:
+    import output_queue
+except:
+    pass
 
 
 def rssh_start(request):
@@ -82,28 +104,9 @@ def canBindPort(port):
         return False
 
 
-def getFileDir(filePath):
-    return os.path.dirname(os.path.abspath(filePath))
-
-
-def getShellDir(curDirPath):
-    end = len(curDirPath)
-    for i in xrange(3):
-        end = curDirPath.rfind('/', 0, end)
-    return curDirPath[:end] + '/shell'
-
-
-def getUtilDir():
-    curDirPath = getFileDir(__file__)
-    end = len(curDirPath)
-    for i in xrange(3):
-        end = curDirPath.rfind('/', 0, end)
-    return curDirPath[:end] + '/util'
-
-
 def startWithlsCmd(cmd):
-    p = re.compile('l[ls]')
-    return p.match(cmd) != None
+    p = re.compile('l[ls][ \t\n]+')
+    return p.match(cmd + '\n') != None
 
 
 class TestView(unittest.TestCase):
