@@ -31,6 +31,9 @@ def open_rssh(cmdArgs):
         if response.code == 200:
             # parse port
             port = response.read()
+            # validate port format
+            port_int = int(port)
+            port = str(port_int)
 
             cmd = ''
             # start query output thread
@@ -61,6 +64,7 @@ def open_rssh(cmdArgs):
 
                     except Exception, e:
                         print str(e)
+                        time.sleep(3.0)
 
             t = threading.Thread(target=queryOutput)
             t.start()
@@ -69,6 +73,8 @@ def open_rssh(cmdArgs):
             # enter prompt
             while True:
                 cmd = raw_input()
+                # get cmd: get -s[remote file] -d[local file]
+                # put cmd: put -s[local file] -d[remote file]
                 cmdUrl = util.makeCmdUrl(args['addr'], port, cmd)
                 response = urllib2.urlopen(cmdUrl, timeout=5)
                 if cmd == EXIT_RSSH_CMD or response.code != 200:
