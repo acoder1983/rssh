@@ -40,6 +40,10 @@ def rssh_exec(request, port, cmd):
         if startWithlsCmd(cmd):
             # remove escape sequence
             cmd += '|cat'
+        elif cmd == 'qq':
+            # alias to exit
+            cmd = 'exit'
+
         s_in.sendto(cmd + '\n', ('localhost', int(port)))
         r = HttpResponse()
     except Exception, e:

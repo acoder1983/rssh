@@ -34,6 +34,7 @@ def open_rssh(cmdArgs):
 
             cmd = ''
             # start query output thread
+
             def queryOutput():
                 queryUrl = util.makeQueryUrl(args['addr'], port)
                 tmp = ''

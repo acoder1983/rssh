@@ -86,8 +86,6 @@ def posix_shell(chan, port):
                 chan.send(x)
             if s_in in r:
                 data, addr = s_in.recvfrom(1024)
-                if data == 'q\n':
-                    data = 'exit\n'
                 chan.send(data)
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
