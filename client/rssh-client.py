@@ -1,7 +1,9 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+import os
 import sys
 import time
+import hashlib
 import urllib2
 import threading
 
@@ -16,16 +18,17 @@ def open_rssh(cmdArgs):
     '''
     try:
         # parse cmdArgs
-        args = util.parseCmdArgs(cmdArgs)
+        args = util.parseCmdArgs(' '.join(cmdArgs))
         if 'addr' not in args:
             print 'need \'-addr [ip:port]\''
             return
 
         # start rssh
         startUrl = util.makeStartUrl(args['addr'])
-        # proxyConfig = 'http://%s' % ('proxynj.zte.com.cn')
-        # opener = urllib2.build_opener(urllib2.ProxyHandler({'http': proxyConfig}))
-        # urllib2.install_opener(opener)
+        if 'proxy' in args:
+            proxyConfig = args['proxy']
+            opener = urllib2.build_opener(urllib2.ProxyHandler({'http': proxyConfig}))
+            urllib2.install_opener(opener)
         response = urllib2.urlopen(startUrl, timeout=10)
 
         if response.code == 200:
@@ -66,15 +69,61 @@ def open_rssh(cmdArgs):
                         print str(e)
                         time.sleep(3.0)
 
-            t = threading.Thread(target=queryOutput)
-            t.start()
+            def putFile(local, remote):
+                try:
+                    # read local file
+                    f = open(local, 'rb')
+                    local_md5 = hashlib.md5()
+                    # send file bytes
+                    filesize = os.path.getsize(local)
+                    sendsize = 0
+                    packsize = 50
+                    while True:
+                        bs = f.read(packsize)
+                        if not bs:
+                            break
+                        content = util.encodeStrInHex(bs)
+                        url = util.makePutUrl(args['addr'], remote, content)
+                        response = urllib2.urlopen(url, timeout=5)
+                        if response.code != 200:
+                            break
+                        local_md5.update(bs)
+                        sendsize += packsize
+                        sys.stdout.write('%d%%.' % int(sendsize * 100 / filesize))
+
+                    # check md5
+                    url = util.makeMd5Url(args['addr'], remote)
+                    response = urllib2.urlopen(url, timeout=5)
+                    if response.code == 200:
+                        remote_md5 = response.read()
+                        if remote_md5 != local_md5.hexdigest():
+                            print 'put file failed. md5 not equal.'
+                        else:
+                            print 'put file ok.'
+                    else:
+                        print response.read()
+                except Exception, e:
+                    print str(e)
+
+            workThread = threading.Thread(target=queryOutput)
+            workThread.start()
 
             print '[rssh] Welcome to ssh %s\n[rssh] remote port is %s\n[rssh] enter \'%s\' to exit\n' % (args['addr'], port, EXIT_RSSH_CMD)
             # enter prompt
             while True:
                 cmd = raw_input()
-                # get cmd: get -s[remote file] -d[local file]
-                # put cmd: put -s[local file] -d[remote file]
+                # get cmd: get -from [remote file] -to [local file]
+                # put cmd: put -from [local file] -to [remote file]
+                if util.isFileCmd(cmd):
+                    putCmd = cmd
+                    # stop output thread
+                    cmd = EXIT_RSSH_CMD
+                    workThread.join()
+                    # start put thread
+                    cmd = putCmd
+                    args = util.parseCmdArgs(cmd)
+                    workThread = threading.Thread(target=putFile, args=(args['from'], args['to']))
+                    workThread.start()
                 cmdUrl = util.makeCmdUrl(args['addr'], port, cmd)
                 response = urllib2.urlopen(cmdUrl, timeout=5)
                 if cmd == EXIT_RSSH_CMD or response.code != 200:
