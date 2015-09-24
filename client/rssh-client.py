@@ -24,11 +24,11 @@ def open_rssh(cmdArgs):
             return
 
         # start rssh
-        startUrl = util.makeStartUrl(args['addr'])
         if 'proxy' in args:
             proxyConfig = args['proxy']
             opener = urllib2.build_opener(urllib2.ProxyHandler({'http': proxyConfig}))
             urllib2.install_opener(opener)
+        startUrl = util.makeStartUrl(args['addr'])
         response = urllib2.urlopen(startUrl, timeout=10)
 
         if response.code == 200:
@@ -73,35 +73,47 @@ def open_rssh(cmdArgs):
                 try:
                     # read local file
                     f = open(local, 'rb')
-                    local_md5 = hashlib.md5()
-                    # send file bytes
-                    filesize = os.path.getsize(local)
-                    sendsize = 0
-                    packsize = 50
-                    while True:
-                        bs = f.read(packsize)
-                        if not bs:
-                            break
-                        content = util.encodeStrInHex(bs)
-                        url = util.makePutUrl(args['addr'], remote, content)
-                        response = urllib2.urlopen(url, timeout=5)
-                        if response.code != 200:
-                            break
-                        local_md5.update(bs)
-                        sendsize += packsize
-                        sys.stdout.write('%d%%.' % int(sendsize * 100 / filesize))
+                    bs = f.read()
 
                     # check md5
+                    local_md5 = hashlib.md5()
+                    local_md5.update(bs)
+                    local_md5 = local_md5.hexdigest()
+
                     url = util.makeMd5Url(args['addr'], remote)
                     response = urllib2.urlopen(url, timeout=5)
                     if response.code == 200:
                         remote_md5 = response.read()
-                        if remote_md5 != local_md5.hexdigest():
-                            print 'put file failed. md5 not equal.'
+                        if remote_md5 != local_md5:
+                            # send file bytes
+                            filesize = len(bs)
+                            sendsize = 0
+                            packsize = 50
+                            while sendsize < filesize:
+                                content = util.encodeStrInHex(bs[sendsize:sendsize + packsize])
+                                url = util.makePutUrl(args['addr'], remote, content)
+                                response = urllib2.urlopen(url, timeout=5)
+                                if response.code != 200:
+                                    break
+                                sendsize += packsize
+                                sys.stdout.write('%d%%.' % int(sendsize * 100 / filesize))
+
+                            # check md5
+                            url = util.makeMd5Url(args['addr'], remote)
+                            response = urllib2.urlopen(url, timeout=5)
+                            if response.code == 200:
+                                remote_md5 = response.read()
+                                if remote_md5 != local_md5:
+                                    print 'put file failed. md5 not equal.'
+                                else:
+                                    print 'put file ok.'
+                            else:
+                                print response.read()
                         else:
-                            print 'put file ok.'
+                            print 'files are identical.'
                     else:
                         print response.read()
+
                 except Exception, e:
                     print str(e)
 
@@ -134,4 +146,4 @@ def open_rssh(cmdArgs):
 
 
 if __name__ == '__main__':
-    open_rssh(sys.argv[1:])
+    open_rssh(sys.argv)
