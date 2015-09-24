@@ -5,8 +5,9 @@ from subprocess import Popen
 import os
 import re
 import sys
-import unittest
 import socket
+import hashlib
+import unittest
 from socket import AF_INET, SOCK_DGRAM
 
 
@@ -88,6 +89,53 @@ def rssh_query(request, port):
     return HttpResponse(msg)
 
 
+def rssh_file_md5(request, rfile):
+    try:
+        f = open(rfile, 'rb')
+        local_md5 = hashlib.md5()
+        local_md5.update(f.read())
+        local_md5 = local_md5.hexdigest()
+        r = HttpResponse(local_md5)
+
+    except Exception, e:
+        r = HttpResponse(str(e))
+        r.status = 500
+    return r
+
+
+def hexBitStr(c):
+    if ord(c) <= ord('9'):
+        return ord(c) - ord('0')
+    else:
+        return ord(c) - ord('a') + 10
+
+
+def decodeChrInHex(s):
+    return chr(hexBitStr(s[0]) * 16 + hexBitStr(s[1]))
+
+
+def decodeStrInHex(s):
+    hexStr = ''
+    for i in xrange(0, len(s), 2):
+        hexStr += decodeChrInHex(s[i:i + 2])
+    return hexStr
+
+
+def rssh_put_file(request, rfile, content):
+    try:
+        # translate content from hex str to real str
+        content = decodeStrInHex(content)
+        # write content to file
+        f = open(rfile, 'ab+')
+        f.write(content)
+        f.close()
+        r = HttpResponse()
+    except Exception, e:
+        r = HttpResponse(str(e))
+        r.status = 500
+    return r
+
+
 def findAvailablePort(startPort=19831):
     for port in range(startPort, 65536):
         if canBindPort(port):
@@ -148,6 +196,12 @@ class TestView(unittest.TestCase):
 
         cmd = 'llok'
         self.assertFalse(startWithlsCmd(cmd))
+
+    def testDecodeHexStr(self):
+        self.assertEqual(decodeChrInHex('00'), chr(0))
+        self.assertEqual(decodeChrInHex('41'), 'A')
+        self.assertEqual(decodeChrInHex('6b'), 'k')
+        self.assertEqual(decodeStrInHex('2d4e0a'), '-N\n')
 
 if __name__ == '__main__':
     unittest.main()
