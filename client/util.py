@@ -117,6 +117,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(args['from'], 'C:/a b/c-d.py')
         self.assertEqual(args['to'], '/home/x')
 
+        args = parseCmdArgs('python rssh-client.py -addr 122.96.128.138:8888 -proxy http://')
+        self.assertEqual(args['addr'], '122.96.128.138:8888')
+        self.assertEqual(args['proxy'], 'http://')
+
     def testMakeStartUrl(self):
         addr = '1.1.1.1:80'
         self.assertEqual(makeStartUrl(addr), 'http://1.1.1.1:80/rssh/start')
